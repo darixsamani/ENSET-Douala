@@ -1,0 +1,158 @@
+\documentclass[10pt]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\usetheme{Madrid}
+
+% Configuration pour le code Matlab
+\lstset{
+	language=Matlab,
+	basicstyle=\ttfamily\tiny,
+	keywordstyle=\color{blue},
+	stringstyle=\color{purple},
+	commentstyle=\color{teal},
+	breaklines=true,
+	showstringspaces=false,
+	frame=single,
+	backgroundcolor=\color{gray!10}
+}
+
+\title{Étude des Signaux Élémentaires}
+\author{Amina FADIMAT}
+\date{\today}
+
+\begin{document}
+	
+	\begin{frame}
+	\titlepage
+\end{frame}
+
+\begin{frame}{Table des matières}
+\tableofcontents
+\end{frame}
+
+\section{Introduction}
+\begin{frame}{Introduction}
+Ce rapport présente l'étude mathématique et graphique de quatre signaux élémentaires couramment utilisés en traitement du signal et en automatique : l'impulsion de Dirac, l'échelon unité, la rampe, et le signal sinusoïdal de fréquence 50 Hz. 
+
+Pour chaque signal, nous donnons sa définition mathématique, les formules du signal original, retardé et avancé, ses principales applications, le code Matlab permettant de le générer et de le visualiser, ainsi que les représentations graphiques correspondantes.
+\end{frame}
+
+\section{Impulsion de Dirac}
+\begin{frame}{Impulsion de Dirac}
+\textbf{Formulation mathématique}
+L'impulsion de Dirac est définie par :
+$$\delta(t)=0 \text{ pour } t\ne0$$
+$$\int_{-\infty}^{+\infty}\delta(t)dt=1$$
+
+Versions :
+\begin{itemize}
+\item Retardée : $\delta(t-t_{0})$
+\item Avancée : $\delta(t+t_{0})$
+\end{itemize}
+
+\textbf{Applications}
+\begin{itemize}
+\item Modéliser une excitation très brève
+\item Réponse impulsionnelle d'un système
+\item Échantillonnage
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Code Matlab - Impulsion de Dirac}
+\begin{lstlisting}
+t0 = 1;
+t = -2:0.001:2;
+
+dirac = zeros(size(t));
+[~, idx0] = min(abs(t));
+[~, idx_ret] = min(abs(t - t0));
+[~, idx_av] = min(abs(t + t0));
+
+dirac(idx0) = 1;
+dirac_ret = zeros(size(t)); dirac_ret(idx_ret) = 1;
+dirac_av = zeros(size(t)); dirac_av(idx_av) = 1;
+
+figure;
+subplot(2,2,1); stem(t, dirac, 'b');
+title('Original (Amina FADIMAT)');
+subplot(2,2,2); stem(t, dirac_ret, 'r');
+title('Delayed');
+subplot(2,2,3); stem(t, dirac_av, 'g');
+title('Advanced');
+subplot(2,2,4); stem(t, dirac); hold on;
+stem(t, dirac_ret); stem(t, dirac_av);
+title('All (Amina FADIMAT)');
+\end{lstlisting}
+\end{frame}
+
+\section{Échelon unité}
+\begin{frame}{Échelon unité}
+$$u(t)=\begin{cases}0, & t<0 \\ 1, & t\ge0\end{cases}$$
+\end{frame}
+
+\begin{frame}[fragile]{Code Matlab - Échelon}
+\begin{lstlisting}
+t0 = 1;
+t = -2:0.001:2;
+
+u = double(t >= 0);
+u_ret = double(t >= t0);
+u_av = double(t >= -t0);
+
+figure;
+subplot(2,2,1); plot(t, u);
+title('Original (Amina FADIMAT)');
+subplot(2,2,2); plot(t, u_ret);
+title('Delayed');
+subplot(2,2,3); plot(t, u_av);
+title('Advanced');
+subplot(2,2,4); plot(t, u); hold on;
+plot(t, u_ret); plot(t, u_av);
+title('All (Amina FADIMAT)');
+\end{lstlisting}
+\end{frame}
+
+\section{Rampe}
+\begin{frame}{Rampe}
+$$r(t)=t \cdot u(t)$$
+\end{frame}
+
+\begin{frame}[fragile]{Code Matlab - Rampe}
+\begin{lstlisting}
+t0 = 1;
+t = -2:0.001:2;
+
+r = t .* (t >= 0);
+r_ret = (t - t0) .* (t >= t0);
+r_av = (t + t0) .* (t >= -t0);
+
+figure;
+subplot(2,2,1); plot(t, r);
+title('Original (Amina FADIMAT)');
+subplot(2,2,2); plot(t, r_ret);
+title('Delayed');
+subplot(2,2,3); plot(t, r_av);
+title('Advanced');
+subplot(2,2,4); plot(t, r); hold on;
+plot(t, r_ret); plot(t, r_av);
+title('All (Amina FADIMAT)');
+\end{lstlisting}
+\end{frame}
+
+\section{Signal sinusoïdal}
+\begin{frame}{Signal sinusoïdal}
+$$x(t)=\sin(100\pi t)$$
+\end{frame}
+
+\section{Conclusion}
+\begin{frame}{Conclusion}
+Les signaux étudiés sont fondamentaux en traitement du signal. Leur compréhension permet d'analyser et modéliser les systèmes dynamiques.
+\end{frame}
+
+\end{document}

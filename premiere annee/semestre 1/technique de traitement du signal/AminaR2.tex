@@ -1,0 +1,440 @@
+\documentclass[12pt,a4paper]{article}
+
+% --- Paquets de base ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{graphicx}
+\usepackage{geometry}
+\geometry{hmargin=2.5cm,vmargin=2.5cm}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{xcolor}
+\usepackage{float}        % pour l'option [H] des figures
+
+% --- Paquet pour les circuits électriques ---
+\usepackage[siunitx, european, american]{circuitikz}
+
+% --- Configuration pour le code MATLAB ---
+\usepackage{listings}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstset{
+	language=Matlab,
+	backgroundcolor=\color{backcolour},   
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{blue},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\ttfamily\small,
+	breakatwhitespace=false,         
+	breaklines=true,                  
+	captionpos=b,                     
+	keepspaces=true,                  
+	numbers=left,                     
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=2,
+	frame=single,
+	literate={é}{{\'e}}1 {è}{{\`e}}1 {à}{{\`a}}1 % Gestion des accents dans le code
+}
+
+% --- Informations du document ---
+\title{\textbf{Étude d'un système du premier ordre \\ Circuit RC}}
+\author{Amina FADIMAT}
+\date{05 mai 2026}
+
+\begin{document}
+	
+	\maketitle
+	
+	\begin{abstract}
+		Ce rapport présente une analyse approfondie du circuit RC série en tant que système dynamique du premier ordre. Nous abordons la modélisation mathématique, l'étude fréquentielle et temporelle, ainsi que la simulation numérique via MATLAB.
+	\end{abstract}
+	
+	\tableofcontents
+	\newpage
+	
+	\section{Introduction}
+	Le circuit RC série, composé d'une résistance $R$ et d'un condensateur $C$, constitue l'exemple le plus élémentaire de système dynamique du premier ordre. Ce rapport en propose une étude complète :
+	\begin{itemize}
+		\item Mise en équation et fonction de transfert.
+		\item Caractéristiques temporelles et fréquentielles.
+		\item Diagramme de Bode.
+		\item Résolution complète par transformation de Laplace.
+		\item Codes MATLAB commentés pour l'analyse et une interface graphique interactive.
+		\item Équation caractéristique et compléments.
+	\end{itemize}
+	
+	\section{Modèle mathématique du circuit RC}
+	\begin{figure}[H]
+		\centering
+		\begin{circuitikz}[american]
+			\draw (0,0) to[V, l=$v_e(t)$] (0,3)
+			to[R, l=$R$, i=$i(t)$] (3,3)
+			to[C, l=$C$, v=$v_s(t)$] (3,0)
+			-- (0,0);
+		\end{circuitikz}
+		\caption{Circuit RC série. La tension de sortie est prise aux bornes du condensateur $v_s(t) = v_C(t)$.}
+	\end{figure}
+	
+	La loi des mailles donne :
+	\begin{equation}
+	v_e(t) = R \, i(t) + v_s(t)
+	\end{equation}
+	
+	Le courant traversant le condensateur s'exprime par $i(t) = C \frac{dv_s}{dt}$. En substituant, on obtient l'équation différentielle :
+	\begin{equation}
+	RC \frac{dv_s(t)}{dt} + v_s(t) = v_e(t)
+	\end{equation}
+	
+	On pose la constante de temps $\tau = RC$ (en secondes). L'équation devient :
+	\begin{equation}
+	\tau \frac{dv_s(t)}{dt} + v_s(t) = v_e(t)
+	\end{equation}
+	
+	\section{Fonction de transfert}
+	En considérant des conditions initiales nulles, la transformée de Laplace de l'équation différentielle s'écrit :
+	\begin{equation*}
+	\tau s V_s(s) + V_s(s) = V_e(s) \implies (\tau s + 1) V_s(s) = V_e(s)
+	\end{equation*}
+	
+	La fonction de transfert est donc :
+	\begin{equation}
+	H(s) = \frac{V_s(s)}{V_e(s)} = \frac{1}{\tau s + 1}
+	\end{equation}
+	Il s'agit d'un filtre passe-bas du premier ordre avec un gain statique unitaire $K=1$.
+	
+	\section{Caractéristiques du système du premier ordre}
+	
+	\subsection{Domaine temporel}
+	\begin{itemize}
+		\item \textbf{Pôle :} $s_p = -1/\tau$. Le système est stable car le pôle est à partie réelle négative.
+		\item \textbf{Gain statique :} $K = H(0) = 1$.
+		\item \textbf{Réponse indicielle :} $v_s(t) = E(1 - e^{-t/\tau}) u(t)$.
+		\item \textbf{Temps de montée ($t_r$) :} $t_r \approx 2,2\tau$ (de 10\% à 90\%).
+		\item \textbf{Temps de réponse à 2\% :} $t_s \approx 4\tau$.
+	\end{itemize}
+	
+	\subsection{Domaine fréquentiel}
+	\begin{itemize}
+		\item \textbf{Pulsation de coupure :} $\omega_c = 1/\tau$.
+		\item \textbf{Pente asymptotique :} 0 dB/décade en BF, -20 dB/décade après $\omega_c$.
+		\item \textbf{Phase :} $0^\circ \to -90^\circ$, valant $-45^\circ$ à $\omega_c$.
+	\end{itemize}
+	
+	\section{Diagramme de Bode}
+	Pour $\tau = 1$ s ($R=1k\Omega, C=1mF$), $H(s) = \frac{1}{s+1}$. L'amplitude est constante jusqu'à $\omega_c$, puis décroît de 20 dB par décade. La phase tend asymptotiquement vers $-90^\circ$.
+	
+	\section{Résolution par la transformée de Laplace}
+	Pour une entrée échelon $v_e(t) = E \, u(t) \implies V_e(s) = E/s$. La sortie s'écrit :
+	\begin{equation*}
+	V_s(s) = \frac{1}{\tau s + 1} \cdot \frac{E}{s} = E \cdot \frac{1}{s(\tau s + 1)}
+	\end{equation*}
+	
+	Par décomposition en éléments simples :
+	\begin{equation*}
+	\frac{1}{s(\tau s + 1)} = \frac{A}{s} + \frac{B}{\tau s + 1} \implies A=1, B=-\tau
+	\end{equation*}
+	D'où $V_s(s) = E \left( \frac{1}{s} - \frac{1}{s + 1/\tau} \right)$, ce qui donne par transformée inverse :
+	\begin{equation}
+	v_s(t) = E(1 - e^{-t/\tau}) u(t)
+	\end{equation}
+	
+	\newpage
+	\section{Réponse à une impulsion de Dirac}
+	L'impulsion de Dirac $\delta(t)$ est la dérivée de l'échelon unité $u(t)$. La réponse impulsionnelle $h(t)$ d'un système linéaire invariant est la transformée de Laplace inverse de sa fonction de transfert.
+	Pour notre circuit RC, $H(s) = 1/(\tau s + 1)$, donc :
+	\begin{equation}
+	h(t) = \mathcal{L}^{-1}\{H(s)\} = \frac{1}{\tau} e^{-t/\tau} \, u(t)
+	\end{equation}
+	Cette réponse est une exponentielle décroissante d'aire unité. Elle permet de calculer la sortie pour une entrée quelconque par convolution :
+	\begin{equation}
+	v_s(t) = (h * v_e)(t) = \int_0^t h(t-\theta) v_e(\theta) \, d\theta
+	\end{equation}
+	
+	\subsection{Lien entre réponse impulsionnelle et échelon}
+	La réponse indicielle (échelon) est l'intégrale de la réponse impulsionnelle :
+	\begin{equation}
+	s(t) = \int_0^t h(\theta) \, d\theta = 1 - e^{-t/\tau}
+	\end{equation}
+	Réciproquement, $h(t) = ds(t)/dt$. Ainsi, connaître l'une des réponses donne l'autre.
+	
+	\begin{figure}[H]
+		\centering
+		\begin{minipage}{0.45\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{impulse_response.png}
+			\caption{Réponse impulsionnelle $h(t)$ pour $\tau=1$ ms.}
+		\end{minipage}
+		\hfill
+		\begin{minipage}{0.45\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{step_from_integral.png}
+			\caption{Réponse indicielle obtenue par intégration de $h(t)$.}
+		\end{minipage}
+	\end{figure}
+	
+	\section{Réponse à un peigne de Dirac (train d'impulsions)}
+	Le peigne de Dirac, noté $\delta_T(t) = \sum_{k=-\infty}^{\infty} \delta(t - kT)$, est une succession périodique d'impulsions de Dirac espacées de $T$ secondes. En pratique, il modélise un échantillonnage idéal.
+	
+	\subsection{Sortie d'un circuit RC soumis à un peigne de Dirac}
+	Pour un système du premier ordre, la réponse à une seule impulsion $\delta(t)$ est $h(t) = \frac{1}{\tau}e^{-t/\tau}u(t)$. Par linéarité et invariance, la réponse à un peigne causal (à partir de $t=0$) est :
+	\begin{equation}
+	v_s(t) = \sum_{k=0}^{\infty} h(t - kT) = \frac{1}{\tau} \sum_{k=0}^{\infty} e^{-(t-kT)/\tau} \, u(t-kT)
+	\end{equation}
+	Cette somme est une série géométrique d'exponentielles. Pour un temps $t = nT + \theta$ avec $0 \le \theta < T$, on obtient :
+	\begin{equation}
+	v_s(nT+\theta) = \frac{1}{\tau} e^{-\theta/\tau} \sum_{k=0}^{n} e^{-(n-k)T/\tau}
+	= \frac{1}{\tau} e^{-\theta/\tau} \frac{1 - e^{-(n+1)T/\tau}}{1 - e^{-T/\tau}}
+	\end{equation}
+	En régime permanent ($n \to \infty$), la réponse devient périodique et tend vers :
+	\begin{equation}
+	v_s^{\text{per}}(\theta) = \frac{1}{\tau} \frac{e^{-\theta/\tau}}{1 - e^{-T/\tau}}, \quad 0 \le \theta < T
+	\end{equation}
+	La sortie présente donc une forme exponentielle décroissante sur chaque intervalle $[kT, (k+1)T[$, avec un saut initial de $1/\tau$ à chaque impulsion.
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.7\textwidth]{dirac_comb.png}
+		\caption{Réponse temporelle à un train d'impulsions ($T=2\tau$). On observe le régime transitoire puis le régime périodique établi.}
+	\end{figure}
+	
+	\subsection{Code MATLAB pour simuler la réponse au peigne de Dirac}
+	Le script suivant calcule et visualise la réponse d'un circuit RC à un peigne de Dirac sur une durée limitée (approximation par des impulsions de largeur finie ou par somme directe de la réponse impulsionnelle).
+	
+	\begin{lstlisting}[caption=Simulation de la réponse au peigne de Dirac]
+	%% Reponse d'un circuit RC a un peigne de Dirac
+	clear; close all; clc;
+	
+	% Parametres
+	R = 1e3; C = 1e-6; tau = R*C;  % tau = 1 ms
+	T = 2*tau;   % periode du peigne (s)
+	N = 5;       % nombre d'impulsions
+	t_max = N*T + 4*tau;  % temps final
+	
+	% Definition de la fonction reponse impulsionnelle
+	h = @(t) (t>=0).*exp(-t/tau)/tau;
+	
+	% Creation d'une echelle de temps fine
+	t = linspace(0, t_max, 2000);
+	
+	% Initialisation de la sortie
+	y = zeros(size(t));
+	
+	% Sommation des reponses aux impulsions aux instants k*T
+	for k = 0:N-1
+	y = y + h(t - k*T);
+	end
+	
+	% Tracé
+	figure;
+	plot(t, y, 'b-', 'LineWidth', 1.5);
+	grid on;
+	xlabel('Temps (s)');
+	ylabel('Tension v_s(t) (V)');
+	title(sprintf('Reponse a un peigne de Dirac (periode T = %.2f ms)', T*1e3));
+	hold on;
+	% Marquer les instants des impulsions
+	for k = 0:N-1
+	xline(k*T, 'r--', sprintf('t=%dT',k));
+	end
+	legend('Reponse du circuit', 'Impulsions');
+	
+	% Sauvegarde de la figure
+	saveas(gcf, 'dirac_comb.png');
+	\end{lstlisting}
+	
+	\newpage
+	\section{Code MATLAB 1 : Réponse temporelle et caractéristiques}
+	Le script suivant calcule et affiche la réponse indicielle d'un circuit RC, puis extrait automatiquement la constante de temps, le temps de montée et le temps de réponse à 2\%.
+	
+	\begin{lstlisting}[caption=Script MATLAB d'analyse temporelle]
+	%% Analyse d'un circuit RC du premier ordre
+	clear; close all; clc;
+	
+	% Parametres
+	R = 1e3; % 1 kOhm
+	C = 1e-6; % 1 uF
+	tau = R*C; % constante de temps
+	E = 5; % amplitude de l'echelon (V)
+	
+	% Fonction de transfert
+	num = 1;
+	den = [tau 1];
+	sys = tf(num, den);
+	
+	% Reponse indicielle
+	figure;
+	step(sys*E); % multiplication par l'amplitude E
+	title('Reponse indicielle du circuit RC');
+	xlabel('Temps (s)');
+	ylabel('Tension v_s(t) (V)');
+	grid on;
+	
+	% Extraction des caracteristiques
+	info = stepinfo(sys*E);
+	t_r = info.RiseTime; % temps de montee 10%-90%
+	t_s = info.SettlingTime; % temps de reponse 2%
+	y_final = E; % gain statique = 1 => valeur finale = E
+	
+	fprintf('Constante de temps tau = %.4e s\n', tau);
+	fprintf('Temps de montee (10-90%%) = %.4e s\n', t_r);
+	fprintf('Temps de reponse 2%% = %.4e s\n', t_s);
+	fprintf('Valeur finale = %.2f V\n', y_final);
+	fprintf('Pulsation de coupure = %.4e rad/s\n', 1/tau);
+	
+	% Sauvegarde de la figure
+	saveas(gcf, 'step_response.png');
+	\end{lstlisting}
+	
+	\subsection{Résultat : réponse indicielle}
+	Après exécution du script, la figure \ref{fig:step_response} est obtenue.
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.7\textwidth]{step_response.png}
+		\caption{Réponse indicielle du circuit RC pour $R=1\,\mathrm{k\Omega}$, $C=1\,\mathrm{\mu F}$, $E=5\,\mathrm{V}$.}
+		\label{fig:step_response}
+	\end{figure}
+	
+	\newpage
+	\section{Code MATLAB 2 : Interface graphique interactive}
+	Ce second script crée une interface utilisateur avec des curseurs pour R et C. Les modifications mettent à jour en temps réel : la constante de temps $\tau=RC$, le diagramme de Bode, la réponse indicielle et les temps caractéristiques.
+	
+	\begin{lstlisting}[caption=Script MATLAB de l'interface graphique]
+	function rc_gui
+	% Interface graphique interactive pour circuit RC
+	
+	% Creation de la figure
+	fig = figure('Name', 'Interface RC-Premier ordre', ...
+	'NumberTitle', 'off', 'Position', [100 100 900 650]);
+	
+	% Valeurs initiales
+	R0 = 1000; % Ohm
+	C0 = 1e-6; % Farad
+	
+	% Calculs initiaux
+	tau0 = R0 * C0;
+	sys0 = tf(1, [tau0 1]);
+	
+	%---Panneau de controle--
+	uipanel('Title', 'Parametres du circuit', 'FontSize', 11, ...
+	'Position', [0.02 0.55 0.3 0.4]);
+	
+	% Curseur pour R
+	uicontrol('Style', 'text', 'String', 'Resistance R (Ohm)', ...
+	'Position', [30 470 150 20]);
+	sliderR = uicontrol('Style', 'slider', 'Min', 100, 'Max', 10000, ...
+	'Value', R0, 'Position', [30 450 150 20]);
+	txtR = uicontrol('Style', 'text', 'String', num2str(R0), ...
+	'Position', [190 450 60 20]);
+	
+	% Curseur pour C
+	uicontrol('Style', 'text', 'String', 'Capacite C (Farad)', ...
+	'Position', [30 410 150 20]);
+	sliderC = uicontrol('Style', 'slider', 'Min', 0.1e-6, 'Max', 10e-6, ...
+	'Value', C0, 'Position', [30 390 150 20]);
+	txtC = uicontrol('Style', 'text', 'String', num2str(C0), ...
+	'Position', [190 390 60 20]);
+	
+	% Affichage de tau
+	txtTau = uicontrol('Style', 'text', 'String', ['tau = ' num2str(tau0) ' s'], ...
+	'Position', [30 340 200 30], 'FontSize', 12, ...
+	'BackgroundColor', 'white');
+	
+	%---Axes pour les trages--
+	axBodeMag = subplot(2,2,2); % Bode gain
+	axBodePhase = subplot(2,2,4); % Bode phase
+	axStep = subplot(2,2,1); % Reponse indicielle
+	
+	%---Callbacks des curseurs--
+	addlistener(sliderR, 'Value', 'PostSet', @update);
+	addlistener(sliderC, 'Value', 'PostSet', @update);
+	
+	% Appel initial
+	update();
+	
+	function update(~,~)
+	R = get(sliderR, 'Value');
+	C = get(sliderC, 'Value');
+	tau = R * C;
+	set(txtR, 'String', num2str(R, '%.0f'));
+	set(txtC, 'String', num2str(C, '%.2e'));
+	set(txtTau, 'String', ['tau = ' num2str(tau, '%.3e') ' s']);
+	
+	% Fonction de transfert
+	sys = tf(1, [tau 1]);
+	
+	% Diagramme de Bode
+	w = logspace(0, 6, 200); 
+	[mag, phase, wout] = bode(sys, w);
+	mag = squeeze(mag);
+	phase = squeeze(phase);
+	
+	axes(axBodeMag);
+	semilogx(wout, 20*log10(mag), 'LineWidth', 1.5);
+	grid on; title('Bode-Gain'); xlabel('omega (rad/s)'); ylabel('dB');
+	hold on;
+	plot([1/tau 1/tau], [-40 5], 'r--');
+	hold off;
+	
+	axes(axBodePhase);
+	semilogx(wout, phase, 'LineWidth', 1.5);
+	grid on; title('Bode-Phase'); xlabel('omega (rad/s)'); ylabel('deg');
+	hold on;
+	plot([1/tau 1/tau], [-100 10], 'r--');
+	hold off;
+	
+	% Reponse indicielle
+	axes(axStep);
+	step(sys*5, 5*tau); 
+	title('Reponse indicielle (E=5 V)');
+	grid on;
+	
+	% Affichage dans la console
+	info = stepinfo(sys);
+	fprintf('---\nR = %.0f Ohm, C = %.2e F, tau = %.4e s\n', R, C, tau);
+	end
+	end
+	\end{lstlisting}
+	
+	\subsection{Résultat : interface graphique}
+	L’exécution de \texttt{rc\_gui} ouvre une fenêtre interactive (Figure \ref{fig:gui}). Vous pouvez modifier R et C à l’aide des curseurs ; les graphiques se mettent à jour dynamiquement. Pour capturer l’écran, utilisez la fonction \texttt{saveas} ou faites une capture manuelle.
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.9\textwidth]{dirac_comb.png}
+		\caption{Interface interactive : diagramme de Bode (gain et phase) et réponse indicielle pour les valeurs courantes de R et C.}
+		\label{fig:gui}
+	\end{figure}
+	
+	\section{Équation caractéristique et points complémentaires}
+	\subsection{Équation caractéristique}
+	L'équation caractéristique $\tau s + 1 = 0$ possède une racine unique $s = -1/\tau$. Plus $\tau$ est faible (pôle très négatif), plus le système est rapide.
+	
+	\subsection{Influence de R et C}
+	L'augmentation de $R$ ou $C$ entraîne une augmentation de $\tau$, ralentissant ainsi la réponse du système et abaissant la fréquence de coupure.
+	
+	\subsection{Réponse à d'autres entrées}
+	\begin{itemize}
+		\item \textbf{Impulsion :} $v_s(t) = \frac{1}{\tau} e^{-t/\tau} u(t)$.
+		\item \textbf{Rampe :} $v_s(t) = t - \tau + \tau e^{-t/\tau}$. Une erreur de traînage égale à $\tau$ apparaît en régime permanent.
+	\end{itemize}
+	
+	\subsection{Aspects énergétiques}
+	L'énergie emmagasinée est $W(t) = \frac{1}{2} C v_s^2(t)$. La puissance dissipée par effet Joule est $P_R(t) = R i^2(t)$.
+	
+	\subsection{Analogie avec d'autres systèmes}
+	La forme canonique $K/(\tau s + 1)$ est universelle et se retrouve en thermique (température d'un corps), en hydraulique (vidange d'un réservoir) et en mécanique.
+	
+	\section{Conclusion}
+	Cette étude a permis de caractériser le circuit RC. La constante de temps $\tau = RC$ est le paramètre fondamental régissant la rapidité et la bande passante du système. L'interface graphique proposée facilite la compréhension intuitive de ces concepts.
+	
+\end{document}

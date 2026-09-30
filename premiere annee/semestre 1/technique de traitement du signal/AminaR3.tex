@@ -1,0 +1,404 @@
+\documentclass[12pt,a4paper]{article}
+
+% --- Paquets de base ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{graphicx}
+\usepackage{geometry}
+\geometry{hmargin=2.5cm,vmargin=2.5cm}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{xcolor}
+\usepackage{float}        % pour l'option [H] des figures
+
+% --- Paquet pour les circuits électriques ---
+\usepackage[siunitx, european, american]{circuitikz}
+
+% --- Configuration pour le code MATLAB ---
+\usepackage{listings}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstset{
+	language=Matlab,
+	backgroundcolor=\color{backcolour},   
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{blue},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\ttfamily\small,
+	breakatwhitespace=false,         
+	breaklines=true,                  
+	captionpos=b,                     
+	keepspaces=true,                  
+	numbers=left,                     
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=2,
+	frame=single,
+	literate={é}{{\'e}}1 {è}{{\`e}}1 {à}{{\`a}}1
+}
+
+% --- Informations du document ---
+\title{\textbf{Étude d'un système du second ordre \\ Circuit RLC série}}
+\author{Amina FADIMAT}
+\date{29 avril 2026}
+
+\begin{document}
+	
+	\maketitle
+	
+	\begin{abstract}
+		Ce rapport présente une analyse approfondie du circuit RLC série en tant que système dynamique du second ordre. Nous abordons la modélisation mathématique, l'étude fréquentielle et temporelle, la résolution par transformée de Laplace, ainsi que la simulation numérique via MATLAB. Des sections dédiées aux réponses à une impulsion de Dirac et à un peigne de Dirac sont également incluses.
+	\end{abstract}
+	
+	\tableofcontents
+	\newpage
+	
+	\section{Introduction}
+	Le circuit RLC série est un système électrique fondamental du second ordre. Il est composé d'une résistance $R$, d'une inductance $L$ et d'une capacité $C$ montées en série, alimentées par une source de tension $v_{\text{in}}(t)$. La tension aux bornes du condensateur $v_C(t)$ est choisie comme grandeur de sortie. Ce rapport présente son modèle mathématique, sa fonction de transfert, ses caractéristiques temporelles et fréquentielles, ainsi que des codes MATLAB pour l'analyse et une interface graphique interactive.
+	
+	\section{Modèle mathématique}
+	\begin{figure}[H]
+		\centering
+		\begin{circuitikz}[american]
+			\draw (0,0) to[V, l=$v_{\text{in}}(t)$] (0,3)
+			to[R, l=$R$] (3,3)
+			to[L, l=$L$] (6,3)
+			to[C, l=$C$, v=$v_C(t)$] (6,0)
+			-- (0,0);
+		\end{circuitikz}
+		\caption{Circuit RLC série. La tension de sortie est prise aux bornes du condensateur.}
+	\end{figure}
+	
+	En appliquant la loi des mailles, on obtient :
+	\begin{equation}
+	v_{\text{in}}(t) = R i(t) + L \frac{di(t)}{dt} + v_C(t)
+	\end{equation}
+	Avec $i(t) = C \frac{dv_C}{dt}$, on trouve l'équation différentielle du second ordre :
+	\begin{equation}
+	LC \frac{d^2v_C(t)}{dt^2} + RC \frac{dv_C(t)}{dt} + v_C(t) = v_{\text{in}}(t)
+	\end{equation}
+	
+	\section{Fonction de transfert}
+	En appliquant la transformée de Laplace avec conditions initiales nulles :
+	\begin{equation}
+	(LC s^2 + RC s + 1) V_C(s) = V_{\text{in}}(s)
+	\end{equation}
+	D'où la fonction de transfert :
+	\begin{equation}
+	H(s) = \frac{V_C(s)}{V_{\text{in}}(s)} = \frac{1}{LC s^2 + RC s + 1}
+	\end{equation}
+	On introduit la pulsation naturelle $\omega_n$ et le coefficient d'amortissement $\zeta$ :
+	\begin{equation}
+	\omega_n = \frac{1}{\sqrt{LC}}, \qquad \zeta = \frac{R}{2}\sqrt{\frac{C}{L}}
+	\end{equation}
+	La forme canonique devient :
+	\begin{equation}
+	H(s) = \frac{\omega_n^2}{s^2 + 2\zeta\omega_n s + \omega_n^2}
+	\end{equation}
+	
+	\section{Caractéristiques du système}
+	
+	\subsection{Équation caractéristique et pôles}
+	L'équation caractéristique est $s^2 + 2\zeta\omega_n s + \omega_n^2 = 0$. Ses racines (pôles) sont :
+	\begin{equation}
+	p_{1,2} = -\zeta\omega_n \pm \omega_n \sqrt{\zeta^2 - 1}
+	\end{equation}
+	La nature de la réponse dépend de $\zeta$ :
+	\begin{itemize}
+		\item $\zeta > 1$ : deux pôles réels distincts (régime apériodique).
+		\item $\zeta = 1$ : pôle double réel (amortissement critique).
+		\item $0 < \zeta < 1$ : deux pôles complexes conjugués (régime oscillant amorti).
+		\item $\zeta = 0$ : pôles imaginaires purs (oscillateur libre).
+	\end{itemize}
+	
+	\subsection{Réponse indicielle (échelon unité)}
+	Pour $V_{\text{in}}(s) = 1/s$, on distingue trois régimes.
+	
+	\paragraph{Cas sous-amorti ($0<\zeta<1$) :}
+	\begin{equation}
+	v_C(t) = 1 - \frac{e^{-\zeta\omega_n t}}{\sqrt{1-\zeta^2}} \sin(\omega_d t + \phi), \quad 
+	\omega_d = \omega_n\sqrt{1-\zeta^2},\quad 
+	\phi = \arctan\left(\frac{\sqrt{1-\zeta^2}}{\zeta}\right)
+	\end{equation}
+	
+	\paragraph{Cas critique ($\zeta=1$) :}
+	\begin{equation}
+	v_C(t) = 1 - e^{-\omega_n t}(1 + \omega_n t)
+	\end{equation}
+	
+	\paragraph{Cas sur-amorti ($\zeta>1$) :}
+	\begin{equation}
+	v_C(t) = 1 - \frac{\omega_n}{2\sqrt{\zeta^2-1}}\left(\frac{e^{p_1 t}}{p_1} - \frac{e^{p_2 t}}{p_2}\right)
+	\end{equation}
+	avec $p_{1,2} = -\zeta\omega_n \pm \omega_n\sqrt{\zeta^2-1}$.
+	
+	\subsection{Performances temporelles (pour $0<\zeta<1$)}
+	\begin{itemize}
+		\item \textbf{Temps de pic :} $t_p = \dfrac{\pi}{\omega_d}$
+		\item \textbf{Dépassement maximal :} $D\% = 100\exp\left(-\dfrac{\pi\zeta}{\sqrt{1-\zeta^2}}\right)$
+		\item \textbf{Temps de stabilisation à 2\% :} $t_s \approx \dfrac{4}{\zeta\omega_n}$
+		\item \textbf{Temps de montée (10\%$\rightarrow$90\%) :} $t_r \approx \dfrac{1.8}{\omega_n}$ (approximation)
+	\end{itemize}
+	
+	\section{Diagramme de Bode}
+	Le gain en dB et la phase s'expriment par :
+	\begin{align}
+	|H(j\omega)|_{\text{dB}} &= 20\log_{10}\left( \frac{\omega_n^2}{\sqrt{(\omega_n^2-\omega^2)^2 + (2\zeta\omega_n\omega)^2}} \right) \\
+	\arg H(j\omega) &= -\arctan\left( \frac{2\zeta\omega_n\omega}{\omega_n^2-\omega^2} \right) \quad (\text{avec ajout de }-\pi \text{ si } \omega>\omega_n)
+	\end{align}
+	Caractéristiques :
+	\begin{itemize}
+		\item Asymptote BF : 0 dB, pente 0 dB/dec
+		\item Asymptote HF : -40 dB/dec
+		\item Pic de résonance (si $\zeta<1/\sqrt{2}$) : $\omega_r = \omega_n\sqrt{1-2\zeta^2}$, amplitude $M_r = \frac{1}{2\zeta\sqrt{1-\zeta^2}}$
+	\end{itemize}
+	
+	\section{Résolution par transformée de Laplace}
+	Les expressions temporelles ont été détaillées section 4.2. La méthode consiste à :
+	\begin{enumerate}
+		\item Transformer l'équation différentielle.
+		\item Exprimer $V_C(s) = H(s) V_{\text{in}}(s)$.
+		\item Décomposer en éléments simples.
+		\item Utiliser les tables de transformées inverses.
+	\end{enumerate}
+	
+	\newpage
+	\section{Réponse à une impulsion de Dirac}
+	Pour un système du second ordre, la réponse impulsionnelle $h(t)$ est la transformée inverse de $H(s)$. Pour $0<\zeta<1$ :
+	\begin{equation}
+	h(t) = \frac{\omega_n}{\sqrt{1-\zeta^2}} e^{-\zeta\omega_n t} \sin(\omega_d t) \, u(t)
+	\end{equation}
+	Cette réponse caractérise complètement le système linéaire. La réponse indicielle s'obtient par intégration de $h(t)$.
+	
+	\begin{figure}[H]
+		\centering
+		\begin{minipage}{0.45\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{rlc_impulse_response.png}
+			\caption{Réponse impulsionnelle pour $\zeta=0.5$, $\omega_n=1$ rad/s.}
+		\end{minipage}
+		\hfill
+		\begin{minipage}{0.45\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{rlc_step_from_integral.png}
+			\caption{Réponse indicielle obtenue par intégration de $h(t)$.}
+		\end{minipage}
+	\end{figure}
+	
+	\section{Réponse à un peigne de Dirac}
+	Le peigne de Dirac $\delta_T(t) = \sum_{k=-\infty}^{\infty} \delta(t-kT)$ appliqué à l'entrée d'un système linéaire produit en sortie la somme des réponses impulsionnelles décalées :
+	\begin{equation}
+	v_C(t) = \sum_{k=0}^{\infty} h(t-kT)
+	\end{equation}
+	Pour un système sous-amorti, la réponse est une somme d'oscillations amorties. Après un régime transitoire, un régime permanent périodique s'établit.
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.7\textwidth]{rlc_dirac_comb.png}
+		\caption{Réponse à un peigne de Dirac ($T=2\pi/\omega_d$, $\zeta=0.3$).}
+	\end{figure}
+	
+	\newpage
+	\section{Codes MATLAB explicatifs}
+	
+	\subsection{Analyse complète des réponses (sans toolbox)}
+	Le script suivant utilise exclusivement des fonctions MATLAB de base pour calculer et tracer les réponses temporelles et fréquentielles.
+	
+	\begin{lstlisting}[caption=Analyse RLC sans toolbox]
+	%% Analyse d'un circuit RLC (sans Control System Toolbox)
+	clear; close all; clc;
+	
+	% Parametres du circuit
+	R = 100;        % Ohm
+	L = 10e-3;      % Henry
+	C = 100e-9;     % Farad
+	
+	% Calcul des constantes
+	wn = 1/sqrt(L*C);
+	zeta = (R/2)*sqrt(C/L);
+	
+	% Temps
+	t = linspace(0, 5/(zeta*wn), 2000);
+	% Cas sous-amorti (zeta < 1)
+	if zeta < 1
+	wd = wn*sqrt(1-zeta^2);
+	phi = atan(sqrt(1-zeta^2)/zeta);
+	step_response = 1 - exp(-zeta*wn*t)/sqrt(1-zeta^2).*sin(wd*t + phi);
+	impulse_response = (wn/sqrt(1-zeta^2))*exp(-zeta*wn*t).*sin(wd*t);
+	elseif zeta == 1
+	step_response = 1 - exp(-wn*t).*(1 + wn*t);
+	impulse_response = wn^2 * t .* exp(-wn*t);
+	else % zeta > 1
+	p1 = -zeta*wn + wn*sqrt(zeta^2-1);
+	p2 = -zeta*wn - wn*sqrt(zeta^2-1);
+	step_response = 1 - (wn/(2*sqrt(zeta^2-1))) * (exp(p1*t)/p1 - exp(p2*t)/p2);
+	impulse_response = (wn/(2*sqrt(zeta^2-1))) * (exp(p1*t) - exp(p2*t));
+	end
+	
+	% Figure
+	figure;
+	subplot(2,2,1);
+	plot(t, step_response, 'b-', 'LineWidth', 1.5);
+	grid on; title('Reponse indicielle'); xlabel('t (s)'); ylabel('v_C(t)');
+	text(0.7*max(t), 0.2*max(step_response), 'Amina FADIMAT', ...
+	'BackgroundColor','white','EdgeColor','black');
+	
+	subplot(2,2,2);
+	plot(t, impulse_response, 'r-', 'LineWidth', 1.5);
+	grid on; title('Reponse impulsionnelle'); xlabel('t (s)'); ylabel('h(t)');
+	text(0.7*max(t), 0.8*max(impulse_response), 'Amina FADIMAT', ...
+	'BackgroundColor','white','EdgeColor','black');
+	
+	% Diagramme de Bode (gain uniquement)
+	w = logspace(-2, 3, 500);
+	s = 1j*w;
+	H = wn^2 ./ (s.^2 + 2*zeta*wn*s + wn^2);
+	mag_dB = 20*log10(abs(H));
+	subplot(2,2,3:4);
+	semilogx(w, mag_dB, 'LineWidth', 1.5);
+	grid on; title('Diagramme de Bode - Gain'); xlabel('\omega (rad/s)'); ylabel('|H| (dB)');
+	hold on; xline(wn, 'r--', '\omega_n'); yline(-3, 'g--', '-3 dB');
+	text(w(end)/10, max(mag_dB)-5, 'Amina FADIMAT', ...
+	'BackgroundColor','white','EdgeColor','black');
+	
+	% Sauvegarde
+	saveas(gcf, 'rlc_analysis.png');
+	\end{lstlisting}
+	
+	\subsection{Génération des figures supplémentaires}
+	
+	\subsubsection{Réponse impulsionnelle et intégration (pour la section 8)}
+	\begin{lstlisting}[caption=Impulsion et intégration]
+	%% Impulsion et intégration (RLC)
+	clear; close all; clc;
+	R = 100; L = 10e-3; C = 100e-9;
+	wn = 1/sqrt(L*C); zeta = (R/2)*sqrt(C/L);
+	t = linspace(0, 5/(zeta*wn), 2000);
+	wd = wn*sqrt(1-zeta^2);
+	h = (wn/sqrt(1-zeta^2))*exp(-zeta*wn*t).*sin(wd*t);
+	step_int = cumtrapz(t, h);
+	step_ana = 1 - exp(-zeta*wn*t)/sqrt(1-zeta^2).*sin(wd*t + atan(sqrt(1-zeta^2)/zeta));
+	
+	figure;
+	subplot(1,2,1);
+	plot(t, h, 'r-', 'LineWidth', 1.5);
+	grid on; xlabel('t (s)'); ylabel('h(t)'); title('Reponse impulsionnelle');
+	text(0.7*max(t), 0.8*max(h), 'Amina FADIMAT', 'BackgroundColor','white');
+	subplot(1,2,2);
+	plot(t, step_int, 'b-', t, step_ana, 'g--', 'LineWidth', 1.5);
+	grid on; xlabel('t (s)'); ylabel('v_C(t)'); title('Integration vs analytique');
+	legend('Integration', 'Analytique');
+	text(0.7*max(t), 0.2*max(step_int), 'Amina FADIMAT', 'BackgroundColor','white');
+	saveas(gcf, 'rlc_impulse_integral.png');
+	\end{lstlisting}
+	
+	\subsubsection{Réponse à un peigne de Dirac}
+	\begin{lstlisting}[caption=Peigne de Dirac pour RLC]
+	%% Reponse à un peigne de Dirac (RLC)
+	clear; close all; clc;
+	R = 100; L = 10e-3; C = 100e-9;
+	wn = 1/sqrt(L*C); zeta = (R/2)*sqrt(C/L);
+	wd = wn*sqrt(1-zeta^2);
+	T = 2*pi/wd;        % periode du peigne
+	N = 5;
+	t_max = N*T + 5/(zeta*wn);
+	t = linspace(0, t_max, 2000);
+	h = @(t) (t>=0).*(wn/sqrt(1-zeta^2))*exp(-zeta*wn*t).*sin(wd*t);
+	y = zeros(size(t));
+	for k = 0:N-1
+	y = y + h(t - k*T);
+	end
+	figure;
+	plot(t, y, 'b-', 'LineWidth', 1.5);
+	grid on; xlabel('t (s)'); ylabel('v_C(t)');
+	title(sprintf('Reponse à un peigne de Dirac (T = %.2f s)', T));
+	hold on;
+	for k = 0:N-1
+	xline(k*T, 'r--', sprintf('t=%dT',k));
+	end
+	legend('Reponse', 'Impulsions');
+	text(0.8*t_max, 0.8*max(y), 'Amina FADIMAT', 'BackgroundColor','white');
+	saveas(gcf, 'rlc_dirac_comb.png');
+	\end{lstlisting}
+	
+	\subsection{Interface graphique interactive (avec toolbox)}
+	Le script suivant (nécessitant Control System Toolbox) crée une fenêtre avec curseurs pour $R$, $L$, $C$ et met à jour en temps réel la réponse indicielle et le diagramme de Bode.
+	
+	\begin{lstlisting}[caption=Interface RLC interactive]
+	function interactive_RLC
+	% Interface graphique RLC interactive
+	f = figure('Name', 'Interface RLC interactive', ...
+	'NumberTitle', 'off', 'Position', [100 100 900 600]);
+	
+	% Valeurs initiales
+	R0 = 100; L0 = 10e-3; C0 = 100e-9;
+	
+	% Slider R
+	uicontrol('Style','text','String','R (Ohm)','Position',[30 560 100 20]);
+	sldR = uicontrol('Style','slider','Min',1,'Max',1000,'Value',R0, ...
+	'Position',[130 560 200 20],'Callback',@update);
+	txtR = uicontrol('Style','text','String',num2str(R0),'Position',[340 560 50 20]);
+	
+	% Slider L
+	uicontrol('Style','text','String','L (H)','Position',[30 520 100 20]);
+	sldL = uicontrol('Style','slider','Min',1e-3,'Max',100e-3,'Value',L0, ...
+	'Position',[130 520 200 20],'Callback',@update);
+	txtL = uicontrol('Style','text','String',num2str(L0),'Position',[340 520 50 20]);
+	
+	% Slider C
+	uicontrol('Style','text','String','C (F)','Position',[30 480 100 20]);
+	sldC = uicontrol('Style','slider','Min',1e-9,'Max',1e-6,'Value',C0, ...
+	'Position',[130 480 200 20],'Callback',@update);
+	txtC = uicontrol('Style','text','String',num2str(C0),'Position',[340 480 50 20]);
+	
+	% Axes
+	axStep = axes('Parent',f,'Position',[0.5 0.55 0.45 0.4]);
+	title('Reponse indicielle'); xlabel('Temps (s)'); ylabel('v_C(t)'); grid on;
+	axBode = axes('Parent',f,'Position',[0.5 0.1 0.45 0.35]);
+	title('Diagramme de Bode'); xlabel('Frequence (rad/s)'); ylabel('|H| (dB)'); grid on;
+	
+	% Nom personnalise
+	annotation('textbox',[0.8 0.02 0.15 0.05],'String','Amina FADIMAT',...
+	'BackgroundColor','white','EdgeColor','black');
+	
+	update();
+	
+	function update(~,~)
+	R = get(sldR,'Value');
+	L = get(sldL,'Value');
+	C = get(sldC,'Value');
+	set(txtR,'String',num2str(R,'%.1f'));
+	set(txtL,'String',num2str(L,'%.2e'));
+	set(txtC,'String',num2str(C,'%.2e'));
+	
+	wn = 1/sqrt(L*C);
+	zeta = (R/2)*sqrt(C/L);
+	H = tf(wn^2, [1 2*zeta*wn wn^2]);
+	
+	axes(axStep); cla; step(H); grid on;
+	title(sprintf('Reponse indicielle (\\zeta = %.3f)', zeta));
+	
+	axes(axBode); cla; bode(H); grid on;
+	end
+	end
+	\end{lstlisting}
+	
+	\section{Point supplémentaire : facteur de qualité et résonance}
+	Le facteur de qualité $Q$ mesure l'acuité de la résonance :
+	\begin{equation}
+	Q = \frac{\omega_n L}{R} = \frac{1}{R}\sqrt{\frac{L}{C}} = \frac{1}{2\zeta}
+	\end{equation}
+	Un grand $Q$ correspond à un faible amortissement et à une résonance marquée. La pulsation de résonance (pour l'amplitude) est $\omega_r = \omega_n\sqrt{1-2\zeta^2}$ (si $\zeta<1/\sqrt{2}$). L'amplitude maximale vaut $|H(j\omega_r)| = Q/\sqrt{1-1/(4Q^2)}$. La bande passante à -3 dB est $\text{BW} = \omega_n/Q = 2\zeta\omega_n$.
+	
+	\section{Conclusion}
+	Ce rapport a détaillé l'étude complète d'un système RLC série du second ordre : modélisation, fonction de transfert, comportement temporel et fréquentiel, résolution par Laplace, et mise en œuvre sous MATLAB avec interface graphique interactive. Les réponses à une impulsion de Dirac et à un peigne de Dirac ont été ajoutées, toutes les figures sont personnalisées au nom d'Amina FADIMAT. Les codes fournis permettent de reproduire tous les résultats et d'explorer l'influence des paramètres.
+	
+\end{document}
